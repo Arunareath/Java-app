@@ -1,0 +1,70 @@
+pipeline{
+    agent {
+        kubernetes{
+            yaml '''
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                app: jenkins
+                spec:
+                containers:
+                - name: maven
+                    image: maven:alpine
+                    command: cat
+                - name: docker 
+                    image: docker
+                    command: cat
+                    volumeMount:
+                    mouthPath: /var/lib/docker.sock
+                volume:
+                    name: docker-path
+                    hostPath: /var/lib/docker.sock
+            '''
+        } 
+    }
+    stages{
+        stage('Clone'){
+            steps{
+                container('maven'){
+                    scmVars= checkout scm
+                    sh 'mvn package'
+                }
+            }
+        }
+        stage('Build-Docker-image'){
+            steps{
+                container('docker'){
+                    sh 'cp target/my-app* docker-context'
+                    docker.build(my-docker-image)
+                    sh 'docker build -t my-docker-image'
+                }
+
+            }
+        }
+        stage('Login to Docker hub'){
+            steps{
+                container('docker'){
+                    sh 'docker login -u Arunareath -p ^runfive5App'
+                }
+            }
+        }
+
+        stage('push docker image to docker hub'){
+            steps{
+                container('docker'){
+                    sh 'docker push my-docker-image:lts'
+                }
+            }
+        }
+
+        post{
+            always{
+                container('docker'){
+                    sh 'docker logout'
+                }
+            }
+        }
+
+    }
+   
+}

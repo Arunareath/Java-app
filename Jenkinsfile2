@@ -8,19 +8,20 @@ pipeline {
                   app: jenkins
                 spec:
                   containers:
-                    - name: maven
-                      image: maven:alpine
-                      command: cat
-                    - name: docker 
-                      image: docker
-                      command: cat
-                      volumeMounts:
-                        - mountPath: /var/lib/docker.sock
-                          name: docker-path
-                  volumes:
-                    - name: docker-path
-                      hostPath:
-                        path: /var/lib/docker.sock
+                  - name: maven
+                    image: maven:alpine
+                    command: ["sh", "-c", "echo 'Maven container started'; sleep infinity"]
+                  - name: docker 
+                    image: docker
+                    command: ["sh", "-c", "echo 'Docker container started'; sleep infinity"]
+                 volumeMounts:
+                   - mountPath: /var/lib/docker.sock
+                name: docker-path
+             volumes:
+            - name: docker-path
+            hostPath:
+            path: /var/lib/docker.sock
+
             '''
         } 
     }

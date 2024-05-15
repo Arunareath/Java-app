@@ -26,7 +26,7 @@ pipeline{
         stage('Clone'){
             steps{
                 container('maven'){
-                    scmVars= checkout scm
+                    checkout scm
                     sh 'mvn package'
                 }
             }

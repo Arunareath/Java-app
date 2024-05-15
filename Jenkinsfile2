@@ -2,27 +2,26 @@ pipeline {
     agent {
         kubernetes{
             yaml '''
-                apiVersion: v1
-                kind: Pod
-                metadata:
-                  app: jenkins
-                spec:
-                  containers:
-                  - name: maven
-                    image: maven:alpine
-                    command: ["sh", "-c", "echo 'Maven container started'; sleep infinity"]
-                  - name: docker 
-                    image: docker
-                    command: ["sh", "-c", "echo 'Docker container started'; sleep infinity"]
-                 volumeMounts:
-                   - mountPath: /var/lib/docker.sock
-                name: docker-path
-             volumes:
-            - name: docker-path
-            hostPath:
-            path: /var/lib/docker.sock
-
-            '''
+apiVersion: v1
+kind: Pod
+metadata:
+  app: jenkins
+spec:
+  containers:
+  - name: maven
+    image: maven:alpine
+    command: ["sh", "-c", "echo 'Maven container started'; sleep infinity"]
+  - name: docker 
+    image: docker
+    command: ["sh", "-c", "echo 'Docker container started'; sleep infinity"]
+  volumeMounts:
+  - mountPath: /var/lib/docker.sock
+    name: docker-path
+  volumes:
+  - name: docker-path
+    hostPath:
+      path: /var/lib/docker.sock
+'''
         } 
     }
     stages {
@@ -38,12 +37,12 @@ pipeline {
             steps {
                 container('docker') {
                     sh 'cp target/my-app* docker-context'
-                    script{
-                       docker.build('my-docker-image:latest', 'docker-context')
+                    script {
+                        docker.build('my-docker-image:latest', 'docker-context')
+                    }
                 }
             }
         }
-    }
         stage('Login to Docker hub') {
             steps {
                 container('docker') {
@@ -59,5 +58,4 @@ pipeline {
             }
         }
     }
-
 }

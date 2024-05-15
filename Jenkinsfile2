@@ -37,10 +37,12 @@ pipeline {
             steps {
                 container('docker') {
                     sh 'cp target/my-app* docker-context'
-                    docker.build('my-docker-image:latest', 'docker-context')
+                    script{
+                       docker.build('my-docker-image:latest', 'docker-context')
                 }
             }
         }
+    }
         stage('Login to Docker hub') {
             steps {
                 container('docker') {

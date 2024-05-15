@@ -1,27 +1,27 @@
 pipeline {
     agent {
-        kubernetes{
-            yaml '''
+        kubernetes {
+            yaml """
                 apiVersion: v1
                 kind: Pod
                 metadata:
-                app: jenkins
+                  app: jenkins
                 spec:
-                containers:
-                - name: maven
+                  containers:
+                  - name: maven
                     image: maven:alpine
                     command: ["sh", "-c", "echo 'Maven container started'; sleep 36000"]
-                - name: docker 
+                  - name: docker 
                     image: docker
                     command: ["sh", "-c", "echo 'Docker container started'; sleep 36000"]
-                volumeMounts:
-                - mountPath: /var/lib/docker.sock
+                  volumeMounts:
+                  - mountPath: /var/lib/docker.sock
                     name: docker-path
-                volumes:
-                - name: docker-path
+                  volumes:
+                  - name: docker-path
                     hostPath:
-                    path: /var/lib/docker.sock
-            '''
+                      path: /var/lib/docker.sock
+            """
         } 
     }
     stages {
@@ -36,24 +36,23 @@ pipeline {
         stage('Login-Into-Docker') {
             steps {
                 container('docker') {
-                    sh 'docker login -u <docker_username> -p <docker_password>'
+                    sh 'docker login -u Arunareath -p ^runfive5App'
                 }
             }
         }
         stage('Push-Images-Docker-to-DockerHub') {
             steps {
                 container('docker') {
-                    sh 'docker push ss69261/testing-image:latest'
+                    sh 'docker push target/myapp*'
                 }
             }
         }
-        }
-        post {
-            always {
-                container('docker') {
-                    sh 'docker logout'
+    }
+    post {
+        always {
+            container('docker') {
+                sh 'docker logout'
             }
         }
     }
-    
 }

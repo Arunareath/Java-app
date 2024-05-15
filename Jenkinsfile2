@@ -2,26 +2,26 @@ pipeline {
     agent {
         kubernetes{
             yaml '''
-apiVersion: v1
-kind: Pod
-metadata:
-  app: jenkins
-spec:
-  containers:
-  - name: maven
-    image: maven:alpine
-    command: ["sh", "-c", "echo 'Maven container started'; sleep 36000"]
-  - name: docker 
-    image: docker
-    command: ["sh", "-c", "echo 'Docker container started'; sleep 36000"]
-  volumeMounts:
-  - mountPath: /var/lib/docker.sock
-    name: docker-path
-  volumes:
-  - name: docker-path
-    hostPath:
-      path: /var/lib/docker.sock
-'''
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                app: jenkins
+                spec:
+                containers:
+                - name: maven
+                    image: maven:alpine
+                    command: ["sh", "-c", "echo 'Maven container started'; sleep 36000"]
+                - name: docker 
+                    image: docker
+                    command: ["sh", "-c", "echo 'Docker container started'; sleep 36000"]
+                volumeMounts:
+                - mountPath: /var/lib/docker.sock
+                    name: docker-path
+                volumes:
+                - name: docker-path
+                    hostPath:
+                    path: /var/lib/docker.sock
+            '''
         } 
     }
     stages {
@@ -33,36 +33,27 @@ spec:
                 }
             }
         }
-        stage('Build-Docker-image') {
+        stage('Login-Into-Docker') {
             steps {
                 container('docker') {
-                    sh 'cp target/my-app* docker-context'
-                    script {
-                        docker.build('my-docker-image:latest', 'docker-context')
-                    }
+                    sh 'docker login -u <docker_username> -p <docker_password>'
                 }
             }
         }
-        stage('Login to Docker hub') {
+        stage('Push-Images-Docker-to-DockerHub') {
             steps {
                 container('docker') {
-                    sh 'docker login -u Arunareath -p ^runfive5App'
+                    sh 'docker push ss69261/testing-image:latest'
                 }
             }
         }
-        stage('push docker image to docker hub') {
-            steps {
-                container('docker') {
-                    sh 'docker push my-docker-image:latest'
-                }
-            }
         }
-        stage('docker logout'){
-           steps{
-              container('docker') {
+        post {
+            always {
+                container('docker') {
                     sh 'docker logout'
-                }
-             }
+            }
         }
     }
+    
 }

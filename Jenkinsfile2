@@ -24,6 +24,10 @@ pipeline {
             """
         } 
     }
+    environment {
+        DOCKER_USERNAME = 'Arunareath'
+        DOCKER_PASSWORD = '^runfive5App'
+    }
     stages {
         stage('Clone') {
             steps {
@@ -50,7 +54,7 @@ pipeline {
         stage('Push-Images-Docker-to-DockerHub') {
             steps {
                 container('docker') {
-                    sh 'docker push target/myapp*'
+                     sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
                 }
             }
         }

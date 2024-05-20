@@ -1,7 +1,7 @@
 pipeline {
     agent {
         kubernetes {
-            label agent-pod
+            label 'agent-pod'
         } 
     }
     environment {

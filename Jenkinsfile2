@@ -12,8 +12,15 @@ pipeline {
                     image: maven:alpine
                     command: ["sh", "-c", "echo 'Maven container started'; sleep 36000"]
                   - name: docker 
-                    image: docker:dind
+                    image: docker:20.10.7
                     command: ["sh", "-c", "echo 'Docker container started'; sleep 36000"]
+                    volumeMounts:
+                    - mountPath: /var/run/docker.sock  # Correct the mount path for Docker socket
+                      name: docker-path
+                  volumes:
+                  - name: docker-path
+                    hostPath:
+                      path: /var/run/docker.sock
             """
         } 
     }

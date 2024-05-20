@@ -40,7 +40,7 @@ pipeline {
         stage('Build-Docker-Image') {
             steps {
                 container('docker') {
-                    sh 'docker build -t ss69261/testing-image:latest .'
+                    sh 'docker build -t arunareath/java-app:${env.BUILD_NUMBER} .'
                }
             }
         }
@@ -54,7 +54,7 @@ pipeline {
         stage('Push-Images-Docker-to-DockerHub') {
             steps {
                 container('docker') {
-                     sh 'docker push ss69261/testing-image:latest'
+                     sh 'docker push arunareath/java-app:${env.BUILD_NUMBER}'
                 }
             }
         }

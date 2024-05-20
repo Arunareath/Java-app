@@ -1,40 +1,53 @@
 pipeline {
     agent {
         kubernetes {
+            // Name of the predefined pod template in Jenkins
             label 'agent-pod'
-        } 
+            // Any additional container if needed
+            defaultContainer 'jnlp'
+        }
     }
     environment {
-        DOCKER_USERNAME = 'arunareath'
-        DOCKER_PASSWORD = '^runfive5App'
+        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'  // ID of the stored Docker Hub credentials
+        DOCKER_REPO = 'arunareath/java-app'
     }
     stages {
-        stage('Clone') {
+        stage('Build') {
             steps {
                 container('maven') {
-                    checkout scm
-                    sh 'mvn package'
+                    script {
+                        // Your build steps, e.g., Maven build commands
+                        sh 'mvn clean install'
+                    }
                 }
             }
         }
-        stage('Build-Docker-Image') {
+        stage('Docker Login') {
             steps {
                 container('docker') {
-                    sh 'docker build -t arunareath/java-app:latest .'
-               }
-            }
-        }
-        stage('Login-Into-Docker') {
-            steps {
-                container('docker') {
-                     sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    script {
+                        withCredentials([usernamePassword(credentialsId: "${env.DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                            sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                        }
+                    }
                 }
             }
         }
-        stage('Push-Images-Docker-to-DockerHub') {
+        stage('Build Docker Image') {
             steps {
                 container('docker') {
-                     sh 'docker push arunareath/java-app:latest'
+                    script {
+                        sh 'docker build -t ${DOCKER_REPO}:latest .'
+                    }
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                container('docker') {
+                    script {
+                        sh 'docker push ${DOCKER_REPO}:latest'
+                    }
                 }
             }
         }
@@ -42,8 +55,16 @@ pipeline {
     post {
         always {
             container('docker') {
-                sh 'docker logout'
+                script {
+                    sh 'docker logout'
+                }
             }
+        }
+        success {
+            echo 'Docker image pushed successfully!'
+        }
+        failure {
+            echo 'Failed to push Docker image.'
         }
     }
 }

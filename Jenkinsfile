@@ -2,7 +2,7 @@ pipeline {
     agent {
         kubernetes {
             // Name of the predefined pod template in Jenkins
-            label 'agent-pod'
+            inheritFrom 'agent-pod'
             // Any additional container if needed
             defaultContainer 'jnlp'
         }
@@ -16,7 +16,7 @@ pipeline {
             steps {
                 container('maven') {
                     script {
-                        // Your build steps, e.g., Maven build commands
+                        checkout scm
                         sh 'mvn clean install'
                     }
                 }
